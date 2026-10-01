@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0f1419">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>ParkFit</title>
+<style>
+:root{--bg:#0f1419;--card:#171e26;--line:#263241;--txt:#eef4f8;--dim:#8fa0b0;
+ --acc:#5fe39b;--accd:#15291f;--run:#b79bf5;--rund:#1f1b2e;--sb:env(safe-area-inset-bottom,0px);--st:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font:17px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+ -webkit-font-smoothing:antialiased;overscroll-behavior:none}
+.page{max-width:520px;margin:0 auto;padding:calc(18px + var(--st)) 18px calc(100px + var(--sb))}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.date{color:var(--dim);font-size:14px}
+.fire{background:var(--accd);color:var(--acc);border-radius:999px;padding:7px 14px;font-size:14px;font-weight:700}
+
+.hero{background:var(--card);border-radius:22px;padding:24px;text-align:center;border:1px solid var(--line)}
+.hero.go{background:linear-gradient(170deg,#1b3328,#171e26);border-color:#2f4f3d}
+.hero.run{background:linear-gradient(170deg,#241f38,#171e26);border-color:#3b3356}
+.hero .lbl{font-size:13px;color:var(--dim);letter-spacing:.5px;text-transform:uppercase;font-weight:700}
+.hero .big{font-size:30px;font-weight:800;letter-spacing:-.8px;margin:8px 0 6px;line-height:1.15}
+.hero .sm{color:var(--dim);font-size:15px}
+
+.btn{display:block;width:100%;border:0;border-radius:18px;padding:19px;font:800 18px inherit;font-family:inherit;
+ background:var(--acc);color:#07140d;margin-top:18px;cursor:pointer}
+.btn:active{transform:scale(.98)}
+.btn.v2{background:transparent;border:1.5px solid var(--line);color:var(--txt);font-weight:600;font-size:16px;padding:16px}
+.btn.purple{background:var(--run);color:#140e24}
+.btn.sm{padding:14px;font-size:15px;margin-top:10px}
+
+.sec{margin-top:26px}
+.sec h2{font-size:15px;color:var(--dim);font-weight:700;margin-bottom:10px;letter-spacing:.3px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px}
+.li{display:flex;gap:12px;align-items:center;padding:13px 0;border-top:1px solid var(--line)}
+.li:first-child{border:0}
+.li .n{flex:1;font-size:16px}
+.li .q{color:var(--dim);font-size:14px;white-space:nowrap}
+.dot{width:32px;height:32px;border-radius:11px;background:#101820;border:1px solid var(--line);flex:none;
+ display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--dim)}
+.dot.now{background:var(--accd);border-color:var(--acc);color:var(--acc)}
+.dot.ok{background:var(--acc);border-color:var(--acc);color:#07140d}
+.tip{background:#101820;border-left:3px solid var(--acc);border-radius:12px;padding:14px 16px;font-size:15px;color:#c8d6e2;margin-top:14px}
+.tip.w{border-left-color:#f0a07a}
+
+/* workout runner */
+#run{position:fixed;inset:0;background:var(--bg);z-index:100;display:none;flex-direction:column;
+ padding:calc(16px + var(--st)) 18px calc(20px + var(--sb))}
+#run.on{display:flex}
+.rtop{display:flex;justify-content:space-between;align-items:center;color:var(--dim);font-size:14px}
+.x{background:none;border:0;color:var(--dim);font-size:26px;line-height:1;cursor:pointer;padding:4px 8px;font-family:inherit}
+.prog{height:5px;background:#1d2733;border-radius:4px;margin:14px 0 0;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--acc);transition:.3s;border-radius:4px}
+.rbody{flex:1;display:flex;flex-direction:column;justify-content:center;text-align:center;padding:10px 0}
+.exn{font-size:32px;font-weight:800;letter-spacing:-1px;line-height:1.15}
+.exq{font-size:52px;font-weight:800;color:var(--acc);margin:14px 0 4px;letter-spacing:-2px}
+.exh{color:var(--dim);font-size:16px;max-width:330px;margin:10px auto 0}
+.pips{display:flex;gap:9px;justify-content:center;margin-top:22px}
+.pip{width:13px;height:13px;border-radius:50%;background:#26323f}
+.pip.ok{background:var(--acc)}
+.clock{font-size:76px;font-weight:800;letter-spacing:-3px;font-variant-numeric:tabular-nums}
+.sub{color:var(--dim);font-size:17px;margin-top:6px}
+.rbody.scroll{justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.feed{text-align:left;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-top:18px}
+.feed h4{font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.meal{display:flex;gap:11px;padding:11px 0;border-top:1px solid var(--line);align-items:flex-start}
+.meal:first-of-type{border:0}
+.meal .ic{font-size:19px;line-height:1.3}
+.meal .tx{flex:1;font-size:15px;line-height:1.45}
+.meal .tx b{color:#fff}
+.meal .g{color:var(--acc);font-weight:700;font-size:14px;white-space:nowrap}
+.tm{display:flex;gap:13px;padding:14px 0;border-top:1px solid var(--line)}
+.tm:first-child{border:0}
+.tm .h{font-variant-numeric:tabular-nums;font-weight:800;font-size:16px;color:var(--acc);width:52px;flex:none}
+.tm .c{flex:1;font-size:15px;line-height:1.45}
+.tm .c b{color:#fff;display:block;margin-bottom:2px;font-size:15px}
+.tm .c span{color:var(--dim);font-size:14px}
+.tm.now .h{color:#fff}
+.tm.now{background:var(--accd);margin:0 -16px;padding:14px 16px;border-radius:12px;border:0}
+
+/* nav */
+nav{position:fixed;left:0;right:0;bottom:0;background:rgba(15,20,25,.94);backdrop-filter:blur(18px);
+ -webkit-backdrop-filter:blur(18px);border-top:1px solid var(--line);padding:9px 0 calc(9px + var(--sb));z-index:50}
+.nin{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.nb{background:0;border:0;color:var(--dim);font:600 12px inherit;font-family:inherit;padding:4px;cursor:pointer;
+ display:flex;flex-direction:column;align-items:center;gap:4px}
+.nb svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.nb.on{color:var(--acc)}
+.view{display:none}.view.on{display:block}
+
+input{width:100%;background:#101820;border:1.5px solid var(--line);color:var(--txt);border-radius:14px;
+ padding:15px;font:16px inherit;font-family:inherit}
+label{display:block;font-size:13px;color:var(--dim);margin-bottom:7px;font-weight:600}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.st{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;text-align:center}
+.st b{display:block;font-size:26px;font-weight:800;letter-spacing:-.5px}
+.st span{font-size:13px;color:var(--dim)}
+.toast{position:fixed;left:50%;bottom:calc(100px + var(--sb));transform:translate(-50%,16px);background:var(--acc);
+ color:#07140d;font-weight:700;padding:13px 22px;border-radius:14px;opacity:0;transition:.25s;z-index:200;pointer-events:none;font-size:15px}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.row{display:flex;justify-content:space-between;padding:12px 0;border-top:1px solid var(--line);font-size:15px}
+.row:first-child{border:0}
+.mut{color:var(--dim);font-size:15px}
+.bar{height:9px;background:#101820;border:1px solid var(--line);border-radius:6px;overflow:hidden;margin-top:9px}
+.bar i{display:block;height:100%;background:var(--acc);transition:.4s}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="top">
+    <div><div style="font-weight:800;font-size:19px">ParkFit</div><div class="date" id="date">—</div></div>
+    <div class="fire" id="fire">🔥 0</div>
+  </div>
+
+  <!-- СЕГОДНЯ -->
+  <section class="view on" id="v1">
+    <div class="hero" id="hero">
+      <div class="lbl" id="hLbl">—</div>
+      <div class="big" id="hBig">—</div>
+      <div class="sm" id="hSm">—</div>
+      <button class="btn" id="hBtn" onclick="startWorkout()">Начать</button>
+    </div>
+    <div id="after"></div>
+    <div class="sec" id="preview"></div>
+  </section>
+
+  <!-- ПРОГРЕСС -->
+  <section class="view" id="v2">
+    <div class="stats">
+      <div class="st"><b id="s1">—</b><span>вес сейчас, кг</span></div>
+      <div class="st"><b id="s2">0</b><span>тренировок</span></div>
+      <div class="st"><b id="s3">0</b><span>км пробежал</span></div>
+      <div class="st"><b id="s4">1</b><span>неделя из 8</span></div>
+    </div>
+
+    <div class="sec">
+      <h2>Путь к цели</h2>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between" class="mut"><span id="gTxt">—</span><b id="gPct" style="color:var(--acc)">0%</b></div>
+        <div class="bar"><i id="gBar"></i></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h2>Записать вес</h2>
+      <div class="card">
+        <div class="two">
+          <div><label>Вес, кг</label><input type="number" id="iw" step="0.1" inputmode="decimal" placeholder="95"></div>
+          <div><label>Талия, см</label><input type="number" id="iwa" step="0.5" inputmode="decimal" placeholder="105"></div>
+        </div>
+        <button class="btn sm" onclick="saveM()">Сохранить</button>
+        <div class="tip" id="mTip">Взвешивайся раз в неделю, утром. Чаще — только нервы: вода даёт скачки до 2 кг.</div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h2>Твои рекорды</h2>
+      <div class="card">
+        <div class="row"><span>Подтягивания подряд</span><b id="r1">0</b></div>
+        <div class="row"><span>Отжимания подряд</span><b id="r2">0</b></div>
+        <div class="row"><span>Вис на турнике</span><b id="r3">0 с</b></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h2>Последние дни</h2>
+      <div class="card" id="hist"></div>
+    </div>
+  </section>
+
+  <!-- ЕДА -->
+  <section class="view" id="v4">
+    <div class="sec" style="margin-top:0">
+      <h2>Расписание на сегодня</h2>
+      <div class="card" id="sched"></div>
+      <div class="tip" id="schedTip"></div>
+    </div>
+
+    <div class="sec">
+      <h2>Чем заменить</h2>
+      <div class="card" id="todayFeed"></div>
+    </div>
+
+<div class="sec">
+      <h2>Еда для мышц</h2>
+      <div class="card">
+        <div class="row"><span>Белок каждый день</span><b>130 г</b></div>
+        <div class="row"><span>Вода</span><b>2–2,5 л</b></div>
+        <div class="row"><span>Сон</span><b>7–8 часов</b></div>
+        <div class="row"><span>Дефицит калорий</span><b>~400 ккал</b></div>
+        <div class="tip">Белок по приёмам: завтрак 30 г, после тренировки 35 г, обед 35 г, ужин 30 г. Организм не усваивает всю норму за один раз.</div>
+        <div class="tip w">Честно про руки: при 95 кг жир и рост мышц одновременно идут только первые месяцы. Сначала станешь суше — руки покажутся больше за счёт рельефа. Настоящий объём добавится после 85 кг, когда перейдёшь на лёгкий профицит.</div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h2>Чтобы руки росли</h2>
+      <div class="card">
+        <div class="meal"><div class="ic">1️⃣</div><div class="tx">Работай <b>до отказа</b> в последнем подходе. Мышца растёт от последних двух тяжёлых повторов.</div></div>
+        <div class="meal"><div class="ic">2️⃣</div><div class="tx">Опускайся <b>медленно, 3 секунды</b>. Это даёт больше роста, чем лишние быстрые повторы.</div></div>
+        <div class="meal"><div class="ic">3️⃣</div><div class="tx">Бицепс растёт от <b>подтягиваний обратным хватом</b>, трицепс — от <b>брусьев и узких отжиманий</b>. Оба уже есть в плане.</div></div>
+        <div class="meal"><div class="ic">4️⃣</div><div class="tx">Руки — маленькие мышцы. Объём даёт <b>спина и грудь</b>: станут шире — руки будут смотреться мощнее.</div></div>
+        <div class="meal"><div class="ic">5️⃣</div><div class="tx">Не беги <b>в день силовой</b>. Кардио сразу после мешает восстановлению.</div></div>
+      </div>
+    </div>
+
+      </section>
+
+  <!-- ЕЩЁ -->
+  <section class="view" id="v3">
+    <div class="sec" style="margin-top:0">
+      <h2>Программа</h2>
+      <div class="card" id="week"></div>
+    </div>
+
+    <div class="sec">
+      <h2>Настройки</h2>
+      <div class="card">
+        <label>Начало программы</label>
+        <input type="date" id="iStart" onchange="setStart()">
+        <label style="margin-top:14px">Во сколько тренируешься</label>
+        <input type="time" id="iTT" onchange="setTT()">
+        <div class="two" style="margin-top:14px">
+          <div><label>Старт, кг</label><input type="number" id="iSW" step="0.1" inputmode="decimal" onchange="setGoal()"></div>
+          <div><label>Цель, кг</label><input type="number" id="iGW" step="0.1" inputmode="decimal" onchange="setGoal()"></div>
+        </div>
+        <button class="btn v2 sm" onclick="exportData()">Сохранить копию прогресса</button>
+        <input type="file" id="imp" accept="application/json" style="display:none" onchange="importData(this)">
+        <button class="btn v2 sm" onclick="document.getElementById('imp').click()">Восстановить из копии</button>
+        <button class="btn v2 sm" style="color:#e5734f;border-color:#3a2420" onclick="resetAll()">Начать заново</button>
+        <div class="tip w">Раз в пару недель жми «Сохранить копию» — Safari иногда чистит данные локальных файлов.</div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- РЕЖИМ ТРЕНИРОВКИ -->
+<div id="run">
+  <div class="rtop"><span id="rStep">—</span><button class="x" onclick="quit()">✕</button></div>
+  <div class="prog"><i id="rProg"></i></div>
+  <div class="rbody" id="rBody"></div>
+  <div id="rFoot"></div>
+</div>
+
+<nav><div class="nin">
+  <button class="nb on" data-v="1" onclick="go(1)"><svg viewBox="0 0 24 24"><path d="M3 12h3l2.5-7 4 14 3-9 1.5 2H21"/></svg>Сегодня</button>
+  <button class="nb" data-v="2" onclick="go(2)"><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>Прогресс</button>
+  <button class="nb" data-v="4" onclick="go(4)"><svg viewBox="0 0 24 24"><path d="M4 3v8a3 3 0 0 0 6 0V3M7 11v10M17 3c-1.5 2-2 4-2 6s.5 3 2 3 2-1 2-3-.5-4-2-6zM17 12v9"/></svg>Еда</button>
+  <button class="nb" data-v="3" onclick="go(3)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 7.5 19l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 3 13.6H3a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4.7 7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3h.1A1.6 1.6 0 0 0 10.4 3V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1.1 2.7H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1.3z"/></svg>Ещё</button>
+</div></nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== данные ===== */
+const K='parkfit2';
+const def={start:iso(),sw:95,gw:86,tt:'08:30',log:{},m:[],rec:{pull:0,push:0,hang:0}};
+let S=ld();
+if(!S.v2){S.tt='08:30';S.v2=1;try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
+function ld(){try{return Object.assign({},def,JSON.parse(localStorage.getItem(K)||'{}'))}catch(e){return JSON.parse(JSON.stringify(def))}}
+function sv(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
+function iso(d){d=d||new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)}
+function toast(t){const e=qs('#toast');e.textContent=t;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),1900)}
+function qs(s){return document.querySelector(s)}
+function buzz(p){if(navigator.vibrate)navigator.vibrate(p)}
+
+/* ===== программа ===== */
+function week(){return Math.min(8,Math.max(1,Math.floor((new Date(iso())-new Date(S.start))/6048e5)+1))}
+function ph(){return Math.min(3,Math.floor((week()-1)/2))}
+function p(a){return Array.isArray(a)?a[ph()]:a}
+
+const A=[
+ {n:'Подтягивания',q:['Сколько сможешь','Сколько сможешь','Сколько сможешь','Сколько сможешь'],s:[4,4,5,5],
+  h:'Тяжело? Опусти турник пониже и тяни себя лёжа, ноги на земле.',rec:'pull'},
+ {n:'Отжимания',q:['12 раз','14 раз','16 раз, ноги на скамейке','20 раз'],s:[4,4,4,5],
+  h:'Тяжело? Поставь руки на скамейку — так легче.',rec:'push'},
+ {n:'Брусья',q:['6–8 раз','8–10 раз','10–12 раз','12 раз, пауза внизу'],s:[3,3,4,4],
+  h:'Не получается вверх? Запрыгни наверх и медленно опускайся 4 секунды.'},
+ {n:'Отжимания узко',q:['10 раз','12 раз','12 раз, ладони домиком','15 раз, ладони домиком'],s:[3,3,3,4],
+  h:'Локти держи близко к телу — работает трицепс.'},
+ {n:'Вис на турнике',q:'Сколько провисишь',s:[3,3,3,3],h:'Плечи вниз, дыши ровно. Это лечит спину.',rec:'hang'},
+ {n:'Планка',q:['45 секунд','55 секунд','65 секунд','80 секунд'],s:[3,3,3,3],h:'Таз не поднимай, тело одной линией.'}
+];
+const B=[
+ {n:'Приседания',q:['20 раз','22 раза','25 раз','25 раз, медленно вниз'],s:[4,4,4,4],h:'Пятки на земле, колени смотрят туда же, куда носки.'},
+ {n:'Выпады',q:'12 раз на каждую ногу',s:[3,3,4,4],h:'Шагай по дорожке, колено почти касается земли.'},
+ {n:'Присед на одной ноге',q:'10 раз на каждую ногу',s:[3,3,3,4],h:'Задняя нога лежит на скамейке.'},
+ {n:'Подъёмы на носки',q:'20 раз',s:[3,3,3,3],h:'Встань носками на бордюр, пятки свисают.'},
+ {n:'Колени к груди в висе',q:['10 раз','12 раз','12 раз, ноги прямые','15 раз'],s:[3,3,3,4],h:'Висни на турнике и подтягивай колени. Не раскачивайся.'},
+ {n:'Мостик',q:'15 раз',s:[3,3,3,3],h:'Лёжа на спине, поднимай таз и сжимай ягодицы вверху.'},
+ {n:'Боковая планка',q:'30 секунд на бок',s:[2,2,3,3],h:'Упор на локоть, тело прямое.'}
+];
+const DAY={
+ 1:{t:'s',k:'A',n:'Верх тела',s:'Турник, брусья, отжимания · 40 минут'},
+ 2:{t:'r',n:'Лёгкий бег',s:'Темп такой, чтобы мог говорить на бегу',km:[3,3,4,5]},
+ 3:{t:'s',k:'B',n:'Ноги и живот',s:'Приседания, выпады, пресс · 35 минут'},
+ 4:{t:'r',n:'Бег с ускорениями',s:'6 раз: минута быстро, две минуты шагом',km:3,int:1},
+ 5:{t:'s',k:'A',n:'Верх тела снова',s:'То же, что в понедельник, но на подход больше'},
+ 6:{t:'r',n:'Долгий бег',s:'Медленно. Устал — переходи на быстрый шаг',km:[4,4,6,7]},
+ 0:{t:'o',n:'Отдых',s:'Мышцы растут сегодня, а не на тренировке'}
+};
+const DN=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+
+/* ===== питание после тренировки ===== */
+const SNACK=[
+ {i:'🥛',t:'<b>Творог 200 г</b> с бананом и мёдом',g:'32 г'},
+ {i:'🍳',t:'<b>4 яйца</b> + 2 куска чёрного хлеба',g:'30 г'},
+ {i:'🍗',t:'<b>Куриная грудка 180 г</b> + рис или гречка',g:'40 г'},
+ {i:'🐟',t:'<b>Банка тунца</b> + лаваш и овощи',g:'34 г'},
+ {i:'🥤',t:'<b>Протеин на молоке</b> + банан, если некогда готовить',g:'35 г'},
+ {i:'🥩',t:'<b>Индейка 180 г</b> + картошка и салат',g:'38 г'}
+];
+function hhmm(mins){mins=((mins%1440)+1440)%1440;return String(Math.floor(mins/60)).padStart(2,'0')+':'+String(mins%60).padStart(2,'0')}
+function trainMin(){const[a,b]=(S.tt||'08:30').split(':').map(Number);return a*60+b}
+function schedule(){
+ const t=trainMin(), d=today(), rest=d.t==='o';
+ const dayNames={s:'после силовой',r:'после бега',o:'в выходной'};
+ if(rest) return [
+  {m:t+30,n:'Завтрак',w:'Омлет из 4 яиц + овсянка на молоке',s:'Белок 35 г. В выходной мышцы восстанавливаются — еда нужна как в тренировочный день.'},
+  {m:t+270,n:'Обед',w:'Куриная грудка 200 г + гречка + овощи',s:'Белок 45 г'},
+  {m:t+510,n:'Перекус',w:'Горсть орехов + яблоко или йогурт',s:'Белок 10 г'},
+  {m:t+660,n:'Ужин',w:'Рыба или индейка 180 г + салат',s:'Белок 35 г'},
+  {m:t+780,n:'Перед сном',w:'Творог 150 г',s:'Белок 25 г. Медленный белок кормит мышцы всю ночь.'}
+ ];
+ return [
+  {m:t-45,n:'Подъём',w:'Стакан воды, потом чай',s:'Еды до тренировки нет — так и задумано. Вода до чая важнее: за ночь ты обезвожен.'},
+  {m:t,n:'Тренировка',w:d.t==='r'?('Бег '+p(d.km)+' км'):'Тренировка в парке',s:'Во время — только вода, пару глотков между подходами.',hl:1},
+  {m:t+45,n:'Сразу после',w:'Творог 200 г с бананом и мёдом, или протеин с молоком',s:'Белок 32 г. Самый важный приём дня: ты тренировался натощак, мышцы пустые и заберут всё.'},
+  {m:t+135,n:'Плотный завтрак',w:'4 яйца + 2 куска хлеба + овощи',s:'Белок 30 г. Через час после первого — так усваивается лучше, чем одной большой порцией.'},
+  {m:t+345,n:'Обед',w:'Курица или говядина 200 г + рис, гречка, картошка',s:'Белок 45 г. Углеводы здесь обязательны — это силы на завтра.'},
+  {m:t+570,n:'Ужин',w:'Рыба или индейка 180 г + большой салат',s:'Белок 35 г. Углеводов меньше, вечером они не нужны.'},
+  {m:t+780,n:'Перед сном',w:'Творог 150 г или казеин',s:'Белок 25 г. Руки растут ночью — не ложись голодным.'}
+ ];
+}
+function scheduleHTML(){
+ const now=new Date().getHours()*60+new Date().getMinutes();
+ const L=schedule();
+ let cur=-1;L.forEach((x,i)=>{if(now>=x.m-30)cur=i});
+ return L.map((x,i)=>`<div class="tm ${i===cur?'now':''}">
+   <div class="h">${hhmm(x.m)}</div>
+   <div class="c"><b>${x.n} — ${x.w}</b><span>${x.s}</span></div></div>`).join('');
+}
+function feedHTML(kind){
+ const d=new Date().getDate();
+ const a=SNACK[d%SNACK.length], b=SNACK[(d+3)%SNACK.length];
+ const strength = kind==='s';
+ const head = strength
+  ? 'Ты тренировался натощак, мышцы пустые. Поешь в ближайшие 45 минут — именно из этого вырастут руки.'
+  : 'После бега тоже нужен белок, иначе организм разберёт на топливо мышцы, а не жир.';
+ const extra = strength
+  ? `<div class="meal"><div class="ic">💤</div><div class="tx">Спать <b>7–8 часов</b>. Руки растут ночью, а не на турнике.</div></div>
+     <div class="meal"><div class="ic">💧</div><div class="tx">Выпей <b>0,5 л воды</b> — ты потерял её с потом.</div></div>`
+  : `<div class="meal"><div class="ic">🍚</div><div class="tx">Добавь углеводы: <b>рис, овсянка, картошка</b>. Без них не будет сил на силовую.</div></div>`;
+ return `<div class="feed"><h4>Что съесть после тренировки</h4>
+  <div class="mut" style="font-size:14px;margin-bottom:12px">${head}</div>
+  <div class="meal"><div class="ic">${a.i}</div><div class="tx">${a.t}</div><div class="g">${a.g}</div></div>
+  <div class="meal"><div class="ic">${b.i}</div><div class="tx">${b.t}</div><div class="g">${b.g}</div></div>
+  ${extra}
+  <div class="meal"><div class="ic">🎯</div><div class="tx">За день набрать <b>130 г белка</b>. Меньше — мышцы не растут, сколько ни тренируйся.</div></div>
+  </div>`;
+}
+
+const today=()=>DAY[new Date(iso()).getDay()];
+function exList(){const d=today();if(d.t!=='s')return[];
+ const L=(d.k==='A'?A:B).map(e=>({...e,sets:e.s[ph()]+(new Date(iso()).getDay()===5&&d.k==='A'?1:0)}));return L}
+
+/* ===== экран «Сегодня» ===== */
+function renderToday(){
+ const d=today(),done=!!S.log[iso()],dt=new Date();
+ qs('#date').textContent=dt.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})+' · неделя '+week();
+ qs('#fire').textContent='🔥 '+streak();
+ const hero=qs('#hero');hero.className='hero'+(d.t==='s'?' go':d.t==='r'?' run':'');
+ qs('#hLbl').textContent=done?'Сделано сегодня':d.t==='s'?'Силовая':d.t==='r'?'Бег':'Выходной';
+ qs('#hBig').textContent=d.t==='r'?(d.n+' '+p(d.km)+' км'):d.n;
+ qs('#hSm').textContent=d.s;
+ const b=qs('#hBtn');
+ if(d.t==='o'){b.style.display='none'}
+ else{b.style.display='';b.className='btn'+(d.t==='r'?' purple':'');
+  b.textContent=done?'Пройти ещё раз':(d.t==='r'?'Поехали':'Начать тренировку')}
+
+ qs('#after').innerHTML=done
+  ? '<div class="tip">Готово. Завтра — '+DAY[(dt.getDay()+1)%7].n.toLowerCase()+'.</div>'+feedHTML(S.log[iso()].t)
+  : '';
+
+ let h='';
+ if(d.t==='s'){
+  h='<h2>Что будем делать</h2><div class="card">'+exList().map(e=>
+   `<div class="li"><div class="dot">${e.sets}×</div><div class="n">${e.n}</div><div class="q">${p(e.q)}</div></div>`).join('')+'</div>';
+ }else if(d.t==='r'){
+  h='<h2>Как бежать</h2><div class="card"><div class="mut">'+
+   (d.int?'5 минут трусцой разогрейся. Потом <b style="color:#fff">6 раз</b>: одну минуту бежишь быстро, две минуты идёшь пешком. В конце 5 минут спокойно.'
+         :'Беги ровно и медленно. Если дыхание сбилось — перейди на шаг, отдышись и беги дальше. Скорость сейчас не важна, важны минуты на ногах.')+
+   '</div><div class="tip w">Бегай по грунту, не по асфальту. Болит колено — замени бег на быструю ходьбу в горку.</div></div>';
+ }else{
+  h='<div class="card"><div class="mut">Сегодня просто погуляй 30–40 минут и потяни мышцы. Это не пропуск — это часть плана.</div></div>'+
+    '<button class="btn v2" onclick="go(2)">Записать вес за неделю</button>';
+ }
+ qs('#preview').innerHTML=h;
+}
+function streak(){let n=0,d=new Date(iso());
+ if(!S.log[iso()])d.setDate(d.getDate()-1);
+ for(let i=0;i<300;i++){const k=iso(d);
+  if(S.log[k])n++;else if(d.getDay()!==0)break;
+  d.setDate(d.getDate()-1)}
+ return n}
+
+/* ===== режим тренировки ===== */
+let W={list:[],i:0,set:0,rest:0,t:null,sec:0,run:0};
+function startWorkout(){
+ const d=today();
+ if(d.t==='r'){W={runMode:1,sec:0,t:null};qs('#run').classList.add('on');paintRun();return}
+ W={list:exList(),i:0,set:0,rest:0,t:null};
+ qs('#run').classList.add('on');paintEx();
+}
+function quit(){clearInterval(W.t);qs('#rBody').className='rbody';qs('#run').classList.remove('on');renderToday()}
+
+function paintEx(){
+ qs('#rBody').className='rbody';
+ const e=W.list[W.i];
+ qs('#rStep').textContent='Упражнение '+(W.i+1)+' из '+W.list.length;
+ const total=W.list.reduce((a,x)=>a+x.sets,0);
+ let done=0;for(let k=0;k<W.i;k++)done+=W.list[k].sets;done+=W.set;
+ qs('#rProg').style.width=(done/total*100)+'%';
+ qs('#rBody').innerHTML=`<div class="exn">${e.n}</div>
+  <div class="exq">${p(e.q)}</div>
+  <div class="sub">подход ${W.set+1} из ${e.sets}</div>
+  <div class="pips">${Array.from({length:e.sets},(_,i)=>`<div class="pip ${i<W.set?'ok':''}"></div>`).join('')}</div>
+  <div class="exh">${e.h||''}</div>`;
+ qs('#rFoot').innerHTML=`<button class="btn" onclick="setDone()">Подход сделан</button>
+  <button class="btn v2 sm" onclick="skipEx()">Пропустить упражнение</button>`;
+}
+function setDone(){
+ const e=W.list[W.i];W.set++;buzz(30);
+ if(W.set>=e.sets){
+  if(e.rec){askRec(e);return}
+  nextEx();return}
+ startRest();
+}
+function nextEx(){
+ W.i++;W.set=0;
+ if(W.i>=W.list.length){finish();return}
+ startRest();
+}
+function startRest(){
+ W.rest=90;clearInterval(W.t);
+ const tick=()=>{
+  if(W.rest<=0){clearInterval(W.t);buzz([200,80,200]);paintEx();return}
+  qs('#rBody').innerHTML=`<div class="sub">Отдыхай</div>
+    <div class="clock">${W.rest}</div>
+    <div class="sub">дальше: ${W.set===0?W.list[W.i].n:W.list[W.i].n+', подход '+(W.set+1)}</div>`;
+  qs('#rFoot').innerHTML=`<button class="btn" onclick="clearInterval(W.t);paintEx()">Я готов, дальше</button>
+    <button class="btn v2 sm" onclick="W.rest+=30">+30 секунд</button>`;
+  W.rest--;
+ };
+ qs('#rStep').textContent='Перерыв';tick();W.t=setInterval(tick,1000);
+}
+function skipEx(){clearInterval(W.t);W.set=0;W.i++;if(W.i>=W.list.length)finish();else paintEx()}
+function askRec(e){
+ clearInterval(W.t);
+ const cur=S.rec[e.rec]||0,unit=e.rec==='hang'?'секунд':'раз';
+ qs('#rStep').textContent='Рекорд';
+ qs('#rBody').innerHTML=`<div class="exn">${e.n} закрыто</div>
+  <div class="exh" style="margin-top:14px">Сколько получилось в лучшем подходе? Твой рекорд: <b style="color:var(--acc)">${cur} ${unit}</b></div>
+  <div style="max-width:200px;margin:18px auto 0"><input type="number" inputmode="numeric" id="recIn" placeholder="${cur||'0'}" style="text-align:center;font-size:24px;font-weight:800"></div>`;
+ qs('#rFoot').innerHTML=`<button class="btn" onclick="saveRec('${e.rec}')">Записать и дальше</button>
+  <button class="btn v2 sm" onclick="nextEx()">Пропустить</button>`;
+}
+function saveRec(k){
+ const v=+qs('#recIn').value;
+ if(v){if(v>(S.rec[k]||0)){S.rec[k]=v;sv();toast('Новый рекорд: '+v+'!')}else toast('Записано')}
+ nextEx();
+}
+function finish(){
+ clearInterval(W.t);
+ S.log[iso()]={t:'s'};sv();buzz([100,60,100,60,200]);
+ qs('#rStep').textContent='';qs('#rProg').style.width='100%';
+ qs('#rBody').className='rbody scroll';
+ qs('#rBody').innerHTML=`<div style="text-align:center;padding-top:10px"><div style="font-size:56px">💪</div>
+  <div class="exn" style="margin-top:10px">Тренировка закрыта</div>
+  <div class="exh">Серия: ${streak()} дней подряд. Завтра — ${DAY[(new Date().getDay()+1)%7].n.toLowerCase()}.</div></div>
+  ${feedHTML('s')}`;
+ qs('#rFoot').innerHTML='<button class="btn" onclick="quit()">Отлично</button>';
+}
+
+/* бег */
+function paintRun(){
+ const d=today(),km=p(d.km);
+ qs('#rStep').textContent=d.n;qs('#rProg').style.width='0%';
+ const f=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+ qs('#rBody').innerHTML=`<div class="sub">Цель: ${km} км</div>
+  <div class="clock" id="rc">${f(W.sec)}</div>
+  <div class="exh">${d.int?'Минута быстро, две минуты шагом. Шесть раз.':'Беги спокойно, дыши носом.'}</div>`;
+ qs('#rFoot').innerHTML=`<button class="btn purple" id="rb" onclick="togg()">${W.t?'Пауза':'Старт'}</button>
+  <button class="btn v2 sm" onclick="endRun(${km})">Закончить и записать</button>`;
+}
+function togg(){
+ const f=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+ if(W.t){clearInterval(W.t);W.t=null;qs('#rb').textContent='Продолжить'}
+ else{qs('#rb').textContent='Пауза';W.t=setInterval(()=>{W.sec++;const c=qs('#rc');if(c)c.textContent=f(W.sec)},1000)}
+}
+function endRun(km){
+ clearInterval(W.t);W.t=null;
+ qs('#rBody').innerHTML=`<div class="exn">Сколько пробежал?</div>
+  <div style="max-width:200px;margin:20px auto 0"><input type="number" step="0.1" inputmode="decimal" id="kmIn" value="${km}" style="text-align:center;font-size:26px;font-weight:800"></div>
+  <div class="sub" style="margin-top:10px">километров за ${Math.round(W.sec/60)} мин</div>`;
+ qs('#rFoot').innerHTML=`<button class="btn purple" onclick="saveRun()">Записать день</button>`;
+}
+function saveRun(){
+ const km=parseFloat(qs('#kmIn').value)||0;
+ S.log[iso()]={t:'r',km,min:Math.round(W.sec/60)};sv();buzz([100,60,200]);
+ qs('#rBody').className='rbody scroll';
+ qs('#rBody').innerHTML=`<div style="text-align:center;padding-top:10px"><div style="font-size:56px">🏃</div>
+  <div class="exn" style="margin-top:10px">${km} км в копилку</div>
+  <div class="exh">Серия: ${streak()} дней подряд.</div></div>
+  ${feedHTML('r')}`;
+ qs('#rFoot').innerHTML='<button class="btn" onclick="quit()">Готово</button>';
+}
+
+/* ===== прогресс ===== */
+function saveM(){
+ const w=parseFloat(qs('#iw').value),wa=parseFloat(qs('#iwa').value);
+ if(!w&&!wa)return toast('Введи вес или талию');
+ const d=iso(),e=S.m.find(x=>x.d===d);
+ if(e){if(w)e.w=w;if(wa)e.wa=wa}else S.m.push({d,w:w||null,wa:wa||null});
+ S.m.sort((a,b)=>a.d<b.d?-1:1);sv();qs('#iw').value='';qs('#iwa').value='';toast('Записано');renderProg();
+}
+function renderProg(){
+ const ws=S.m.filter(x=>x.w),cur=ws.length?ws[ws.length-1].w:null;
+ qs('#s1').textContent=cur||'—';
+ qs('#s2').textContent=Object.keys(S.log).length;
+ qs('#s3').textContent=Object.values(S.log).reduce((a,x)=>a+(x.km||0),0).toFixed(0);
+ qs('#s4').textContent=week();
+ const c=cur||S.sw,tot=S.sw-S.gw,dn=S.sw-c,pc=tot>0?Math.max(0,Math.min(100,dn/tot*100)):0;
+ qs('#gBar').style.width=pc+'%';qs('#gPct').textContent=Math.round(pc)+'%';
+ qs('#gTxt').textContent=`${S.sw} → ${S.gw} кг · сейчас ${c}`;
+ if(ws.length>1){const df=(ws[ws.length-1].w-ws[0].w).toFixed(1);
+  qs('#mTip').innerHTML=df<0?`С начала ушло <b style="color:var(--acc)">${Math.abs(df)} кг</b>. Так держать.`:`Вес пока не падает. Проверь еду: дефицит важнее лишнего километра.`}
+ qs('#r1').textContent=S.rec.pull||0;qs('#r2').textContent=S.rec.push||0;qs('#r3').textContent=(S.rec.hang||0)+' с';
+ const ks=Object.keys(S.log).sort().reverse().slice(0,10);
+ qs('#hist').innerHTML=ks.length?ks.map(k=>{const e=S.log[k];
+  return `<div class="row"><span>${new Date(k).toLocaleDateString('ru-RU',{day:'numeric',month:'long'})}</span>
+   <b style="color:${e.t==='r'?'var(--run)':'var(--acc)'}">${e.t==='r'?(e.km?e.km+' км':'бег'):'силовая'}</b></div>`}).join('')
+  :'<div class="mut">Пока пусто. Начни с первой тренировки.</div>';
+}
+
+/* ===== ещё ===== */
+function renderMore(){
+ const dow=new Date(iso()).getDay();
+ qs('#week').innerHTML=[1,2,3,4,5,6,0].map(i=>{const d=DAY[i];
+  return `<div class="li"><div class="dot ${i===dow?'now':''}">${DN[i]}</div>
+   <div class="n">${d.t==='r'?d.n+' '+p(d.km)+' км':d.n}</div>
+   <div class="q">${d.t==='s'?'сила':d.t==='r'?'бег':'отдых'}</div></div>`}).join('');
+ qs('#iStart').value=S.start;qs('#iSW').value=S.sw;qs('#iGW').value=S.gw;qs('#iTT').value=S.tt||'08:30';
+}
+function setTT(){S.tt=qs('#iTT').value||'08:30';sv();renderFeed();toast('Расписание пересчитано')}
+function setStart(){S.start=qs('#iStart').value||iso();sv();all();toast('Обновлено')}
+function setGoal(){S.sw=parseFloat(qs('#iSW').value)||S.sw;S.gw=parseFloat(qs('#iGW').value)||S.gw;sv();renderProg()}
+function exportData(){const b=new Blob([JSON.stringify(S)],{type:'application/json'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='parkfit-backup.json';a.click();toast('Копия сохранена')}
+function importData(el){const f=el.files[0];if(!f)return;const r=new FileReader();
+ r.onload=()=>{try{S=Object.assign({},def,JSON.parse(r.result));sv();all();toast('Восстановлено')}catch(e){toast('Файл не читается')}};
+ r.readAsText(f);el.value=''}
+function resetAll(){if(confirm('Удалить весь прогресс?')){S=JSON.parse(JSON.stringify(def));sv();all();toast('Сброшено')}}
+
+/* ===== навигация ===== */
+function go(n){
+ document.querySelectorAll('.view').forEach(e=>e.classList.remove('on'));
+ qs('#v'+n).classList.add('on');
+ document.querySelectorAll('.nb').forEach(b=>b.classList.toggle('on',+b.dataset.v===n));
+ if(n===2)renderProg();if(n===3)renderMore();if(n===4)renderFeed();scrollTo(0,0);
+}
+function renderFeed(){
+ const d=today(),done=!!S.log[iso()];
+ qs('#sched').innerHTML=scheduleHTML();
+ qs('#schedTip').innerHTML=`Время считается от начала тренировки в <b>${S.tt||'08:30'}</b> — поменять можно в разделе «Ещё». Сдвинулся на час — все приёмы сдвинутся сами.`;
+ const k=done?S.log[iso()].t:(d.t==='r'?'r':'s');
+ qs('#todayFeed').innerHTML=(done
+   ? '<div class="mut" style="font-size:14px;margin-bottom:12px">Тренировка сделана — вот что закрыть едой сегодня.</div>'
+   : d.t==='o'
+     ? '<div class="mut" style="font-size:14px;margin-bottom:12px">Выходной. Белок всё равно нужен: мышцы растут именно сегодня.</div>'
+     : '<div class="mut" style="font-size:14px;margin-bottom:12px">Это понадобится после тренировки. Купи заранее.</div>')
+  +feedHTML(k).replace('<div class="feed">','<div>').replace('<h4>Что съесть после тренировки</h4>','');
+}
+function all(){renderToday();renderProg();renderMore();renderFeed()}
+all();
+try{localStorage.setItem('_t','1');localStorage.removeItem('_t')}catch(e){
+ const d=document.createElement('div');d.className='tip w';d.style.margin='0 18px 14px';
+ d.textContent='Браузер не даёт сохранять прогресс. Открой файл в обычном окне Safari, не в приватном.';
+ qs('.page').prepend(d)}
+</script>
+</body>
+</html>
